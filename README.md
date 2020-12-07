@@ -16,3 +16,5 @@ First set the following variables, or run with defaults
  - `DATADIR`, path to DATA, default: `project root/NFA`, expecting directories per ZF (eg. ZF_1 with metdata in .xml and shots as .mov)
  - `PREFIX`, handle prefix under which the newly created items will be registered, default dummy 123456789, it's using ZF ID in the handle, can't be left on DSpace alone
  - `CONTACT_PERSON`, a contact person who can provide further details about the item, default dummy `Tomáš@@Fuk@@fuk@example.com@@Example ltd.`
+ 
+ second, run `scripts/run.sh` the converted metadata and data should be in `./import` in a structure suitable for `bin/dspace import`
