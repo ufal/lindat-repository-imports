@@ -142,7 +142,7 @@
          <xsl:for-each select="/FILM/EXTERIER/EXT-CIS-SOTU[text()=$cislo_sotu]/..">
                <xsl:call-template name="dcvalue">
                     <xsl:with-param name="element" select="'subject'"/>
-                    <xsl:with-param name="value" select="replace(replace(replace(EXT-TEXT, ':', '::'), ',', '::'), '/ext.::', '/ext.,')"/>
+                    <xsl:with-param name="value" select="concat('Places::', replace(replace(replace(EXT-TEXT, ':', '::'), ',', '::'), '/ext.::', '/ext.,'))"/>
                </xsl:call-template>
          </xsl:for-each>
      </xsl:template>
@@ -153,7 +153,7 @@
                     <xsl:call-template name="dcvalue">
                          <xsl:with-param name="element" select="'subject'"/>
                          <!-- TODO: "Prijmeni, Jmeno" at jsme konzistenti s autorama, ale ono je to asi jedno, hazim to na hromadu keywords-->
-                         <xsl:with-param name="value" select="PRIJMENIJMENO"/>
+                         <xsl:with-param name="value" select="concat('People::', PRIJMENIJMENO)"/>
                     </xsl:call-template>
          </xsl:for-each>
      </xsl:template>
