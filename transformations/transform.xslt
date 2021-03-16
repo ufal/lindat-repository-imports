@@ -16,16 +16,17 @@
           </xsl:choose>
      </xsl:variable>
 
-     <xsl:variable name="ZF_ID" select="concat($PREFIX, '/', /FILM/FILMID)"/>
+     <xsl:variable name="ZF_PID" select="concat($PREFIX, '/', /FILM/FILMID)"/>
+     <xsl:variable name="ZF_ID" select="/FILM/FILMID"/>
 
      <xsl:variable name="ROOT" select="/"/>
 
      <xsl:template match="/">
           <root>
                <ids>
-                    <id><xsl:value-of select="$ZF_ID"/></id>
+                    <id><xsl:value-of select="$ZF_PID"/></id>
                     <xsl:for-each select="/FILM/SOT-ZF/CISLO-SOTU">
-                         <id><xsl:value-of select="concat($ZF_ID, '-' ,.)"/></id>
+                         <id><xsl:value-of select="concat($ZF_PID, '-' ,.)"/></id>
                     </xsl:for-each>
                </ids>
                <xsl:for-each select="tokenize($PROCESS_ONLY_IDS, ';')">
@@ -41,6 +42,7 @@
      
 
      <xsl:template match="/FILM/SOT-ZF">
+          <xsl:variable name="SHOT_PID" select="concat($ZF_PID, '-', CISLO-SOTU)"/>
           <xsl:variable name="SHOT_ID" select="concat($ZF_ID, '-', CISLO-SOTU)"/>
           <item>
                <dublin_core schema="dc">
@@ -53,7 +55,12 @@
                     <xsl:call-template name="dcvalue">
                          <xsl:with-param name="element" select="'identifier'"/>
                          <xsl:with-param name="qualifier" select="'uri'"/>
-                         <xsl:with-param name="value" select="concat('http://hdl.handle.net/', $SHOT_ID)"/>
+                         <xsl:with-param name="value" select="concat('http://hdl.handle.net/', $SHOT_PID)"/>
+                    </xsl:call-template>
+                    <xsl:call-template name="dcvalue">
+                         <xsl:with-param name="element" select="'identifier'"/>
+                         <xsl:with-param name="qualifier" select="'other'"/>
+                         <xsl:with-param name="value" select="$SHOT_ID"/>
                     </xsl:call-template>
                     <xsl:call-template name="dcvalue">
                          <xsl:with-param name="element" select="'description'"/>
