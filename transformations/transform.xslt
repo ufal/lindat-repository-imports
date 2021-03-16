@@ -100,10 +100,9 @@
                               <xsl:with-param name="element" select="'publisher'"/>
                               <xsl:with-param name="value" select="'Národní filmový archiv'"/>
                     </xsl:call-template>
-                    <xsl:call-template name="dcvalue">
-                              <xsl:with-param name="element" select="'date'"/>
-                              <xsl:with-param name="qualifier" select="'issued'"/>
-                              <xsl:with-param name="value">
+
+                    <!-- date.issued shortened to just year, ie. from yyyy-mm-dd to just yyyy -->
+                    <xsl:variable name="issued">
                                    <xsl:choose>
                                         <xsl:when test="ROK-VYROBY-SOTU/text()">
                                              <xsl:value-of select="ROK-VYROBY-SOTU"/>
@@ -112,8 +111,23 @@
                                              <xsl:value-of select="DAT-VYROBY-SOTU"/>
                                         </xsl:otherwise>
                                    </xsl:choose>
+                    </xsl:variable>
+                    <xsl:call-template name="dcvalue">
+                              <xsl:with-param name="element" select="'date'"/>
+                              <xsl:with-param name="qualifier" select="'issued'"/>
+                              <xsl:with-param name="value">
+                                      <xsl:choose>
+                                              <xsl:when test="contains($issued, '-')">
+                                                      <xsl:value-of select="substring-before($issued, '-')"/>
+                                              </xsl:when>
+                                              <xsl:otherwise>
+                                                      <xsl:value-of select="$issued"/>
+                                              </xsl:otherwise>
+                                      </xsl:choose>
                               </xsl:with-param>
                     </xsl:call-template>
+                    <!-- /date.issued -->
+
                     <xsl:call-template name="dcvalue">
                               <xsl:with-param name="element" select="'rights'"/>
                               <xsl:with-param name="qualifier" select="'uri'"/>
