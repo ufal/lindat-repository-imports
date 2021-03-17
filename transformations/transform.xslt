@@ -42,8 +42,9 @@
      
 
      <xsl:template match="/FILM/SOT-ZF">
-          <xsl:variable name="SHOT_PID" select="concat($ZF_PID, '-', CISLO-SOTU)"/>
-          <xsl:variable name="SHOT_ID" select="concat($ZF_ID, '-', CISLO-SOTU)"/>
+          <xsl:variable name="PADDED_NO" select="format-integer(CISLO-SOTU, '00')"/>   
+          <xsl:variable name="SHOT_PID" select="concat($ZF_PID, '-', $PADDED_NO)"/>
+          <xsl:variable name="SHOT_ID" select="concat($ZF_ID, '-', $PADDED_NO)"/>
           <item>
                <dublin_core schema="dc">
                     <!-- dc.title TODO: NAZEV-SKUT-SOTU NAZEV-ORIG-SOTU NAZEV-SOTU-ANGL -->

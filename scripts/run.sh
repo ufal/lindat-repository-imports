@@ -1,9 +1,12 @@
 #!/usr/bin/env bash
+#set -o xtrace
+#set -o verbose
 set -o errexit
 set -o nounset
 set -o pipefail
 set -o errtrace
 trap 's=$?; echo >&2 "$0: Error on line "$LINENO": $BASH_COMMAND"; exit $s' ERR
+shopt -s extglob
 export SHELLOPTS
 
 WD=$(dirname $(readlink -e $0))/..
@@ -45,7 +48,7 @@ function output2import {
         local IDENTIFIER=$(xmllint --xpath "/root/item[$i]/dublin_core[@schema='dc']/dcvalue[@element='identifier' and @qualifier='uri']/text()" output.xml)
         local ID=$(basename $IDENTIFIER)
         local HDL=$(basename $(dirname $IDENTIFIER))/$ID
-        local SHOT_NO=${ID#*-}
+        local SHOT_NO=${ID##*-*(0)}
         mkdir -p $ID
         xmllint --xpath "/root/item[$i]/dublin_core[@schema='dc']" output.xml > $ID/dublin_core.xml
         local schema
