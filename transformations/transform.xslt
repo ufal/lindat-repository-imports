@@ -2,7 +2,7 @@
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
      xmlns:xs="http://www.w3.org/2001/XMLSchema" 
      exclude-result-prefixes="xs" version="3.0">
-     <xsl:output method="xml" indent="yes" />
+     <xsl:output method="xml" indent="yes" encoding="UTF-8" />
 
      <xsl:param name="PREFIX" select="'$PREFIX'"/>
      <xsl:param name="PROCESS_ONLY" select="'-1'"/>
@@ -18,6 +18,9 @@
 
      <xsl:variable name="ZF_PID" select="concat($PREFIX, '/', /FILM/FILMID)"/>
      <xsl:variable name="ZF_ID" select="/FILM/FILMID"/>
+
+     <xsl:variable name="CISLENIK" select="document('../Xciselnik_UVT_ZVP_UTF.xml')/CISELNIKY_ZVP_UVT"/>
+     <xsl:key name="verze" match="//CISELNIK[./DRUH/text()='VERZE']" use="CISLO"/> 
 
      <xsl:variable name="ROOT" select="/"/>
 
@@ -140,6 +143,12 @@
                               <xsl:with-param name="qualifier" select="'uri'"/>
                               <xsl:with-param name="value" select="'http://creativecommons.org/licenses/by-nc-nd/4.0/'"/>
                     </xsl:call-template>
+
+                    <xsl:for-each select="VERZE-SOTU">
+                            <xsl:apply-templates select="$CISLENIK">
+                                    <xsl:with-param name="cislo_verze" select="format-integer(., '000')"/>
+                            </xsl:apply-templates>
+                    </xsl:for-each>
                </dublin_core>
                <dublin_core schema="metashare">
                     <xsl:call-template name="dcvalue">
@@ -191,5 +200,20 @@
                <xsl:value-of select="$value"/>
                </xsl:element>
           </xsl:if>
+     </xsl:template>
+
+     <xsl:template match="CISELNIKY_ZVP_UVT">
+             <xsl:param name="cislo_verze"/>
+             <xsl:choose>
+                     <xsl:when test="key('verze', $cislo_verze)/TEXTCIS">
+                             <xsl:call-template name="dcvalue">
+                                     <xsl:with-param name="element" select="'language'"/>
+                                     <xsl:with-param name="value" select="concat($cislo_verze, ':', key('verze', $cislo_verze)/TEXTCIS)"/>
+                             </xsl:call-template>
+                     </xsl:when>
+                     <xsl:otherwise>
+                             <xsl:message>WARN: Failed to convert cislo_verze '<xsl:value-of select="$cislo_verze"/>' in '<xsl:value-of select="$ZF_ID"/>' </xsl:message>
+                     </xsl:otherwise>
+             </xsl:choose>
      </xsl:template>
 </xsl:stylesheet>
