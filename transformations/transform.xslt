@@ -19,9 +19,6 @@
      <xsl:variable name="ZF_PID" select="concat($PREFIX, '/', /FILM/FILMID)"/>
      <xsl:variable name="ZF_ID" select="/FILM/FILMID"/>
 
-     <xsl:variable name="CISLENIK" select="document('../Xciselnik_UVT_ZVP_UTF.xml')/CISELNIKY_ZVP_UVT"/>
-     <xsl:key name="verze" match="//CISELNIK[./DRUH/text()='VERZE']" use="CISLO"/> 
-
      <xsl:variable name="ROOT" select="/"/>
 
      <xsl:template match="/">
@@ -144,11 +141,7 @@
                               <xsl:with-param name="value" select="'http://creativecommons.org/licenses/by-nc-nd/4.0/'"/>
                     </xsl:call-template>
 
-                    <xsl:for-each select="VERZE-SOTU">
-                            <xsl:apply-templates select="$CISLENIK">
-                                    <xsl:with-param name="cislo_verze" select="format-integer(., '000')"/>
-                            </xsl:apply-templates>
-                    </xsl:for-each>
+                    <xsl:apply-templates select="VERZE-SOTU"/>
                </dublin_core>
                <dublin_core schema="metashare">
                     <xsl:call-template name="dcvalue">
@@ -202,18 +195,52 @@
           </xsl:if>
      </xsl:template>
 
-     <xsl:template match="CISELNIKY_ZVP_UVT">
-             <xsl:param name="cislo_verze"/>
+     <xsl:template match="VERZE-SOTU">
+             <xsl:variable name="cislo_verze" select="format-integer(., '000')"/>
+             <xsl:call-template name="verze2language">
+                     <xsl:with-param name="cislo_verze" select="$cislo_verze"/>
+             </xsl:call-template>
+     </xsl:template>
+
+     <xsl:template name="verze2language">
+         <xsl:param name="cislo_verze"/> 
+         <xsl:variable name="iso_code">
+                 <!-- TODO maybe sound / no sound as subject? -->
              <xsl:choose>
-                     <xsl:when test="key('verze', $cislo_verze)/TEXTCIS">
-                             <xsl:call-template name="dcvalue">
-                                     <xsl:with-param name="element" select="'language'"/>
-                                     <xsl:with-param name="value" select="concat($cislo_verze, ':', key('verze', $cislo_verze)/TEXTCIS)"/>
-                             </xsl:call-template>
+                     <xsl:when test="$cislo_verze='001'">
+                             <xsl:value-of select="'ces'"/>
+                     </xsl:when>
+                     <xsl:when test="$cislo_verze='010'">
+                             <xsl:value-of select="'slk'"/>
+                     </xsl:when>
+                     <xsl:when test="$cislo_verze='220'">
+                             <xsl:value-of select="'deu'"/>
+                     </xsl:when>
+                     <xsl:when test="$cislo_verze='410'">
+                             <!-- nemy -->
+                             <xsl:value-of select="'zxx'"/>
+                     </xsl:when>
+                     <xsl:when test="$cislo_verze='430'">
+                             <!-- zvuk bez dialogu -->
+                             <xsl:value-of select="'zxx'"/>
+                     </xsl:when>
+                     <xsl:when test="$cislo_verze='440'">
+                             <!-- prazdna zvukova stopa -->
+                             <xsl:value-of select="'zxx'"/>
                      </xsl:when>
                      <xsl:otherwise>
+                             <xsl:value-of select="'null'"/>
                              <xsl:message>WARN: Failed to convert cislo_verze '<xsl:value-of select="$cislo_verze"/>' in '<xsl:value-of select="$ZF_ID"/>' </xsl:message>
                      </xsl:otherwise>
              </xsl:choose>
+         </xsl:variable>
+         <!-- <xsl:message>DEBUG: converted cislo_verze '<xsl:value-of select="$cislo_verze"/>' to '<xsl:value-of select="$iso_code"/>' </xsl:message> -->
+         <xsl:if test="$iso_code!='null'">
+                 <xsl:call-template name="dcvalue">
+                         <xsl:with-param name="element" select="'language'"/>
+                         <xsl:with-param name="qualifier" select="'iso'"/>
+                         <xsl:with-param name="value" select="$iso_code"/>
+                 </xsl:call-template>
+         </xsl:if>
      </xsl:template>
 </xsl:stylesheet>
