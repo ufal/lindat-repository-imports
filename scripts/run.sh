@@ -10,7 +10,7 @@ shopt -s extglob
 export SHELLOPTS
 
 WD=$(dirname $(readlink -e $0))/..
-TMP=$(mktemp -d)
+TMP=${TMP:-$(mktemp -d)}
 
 CP=${CP:-/mnt/c/Users/ko_ok/.m2/repository/net/sf/saxon/Saxon-HE/9.9.1-6/Saxon-HE-9.9.1-6.jar}
 
@@ -77,6 +77,10 @@ function nfa2dspace {
         local OUTDIR=$TMP/$NAME
         local ZF_DIR=$(dirname $i)
         local AVAILABLE_SHOTS=$(getAvailableShots $ZF_DIR)
+	if test -n "$(find $TMP -maxdepth 1 -type d -name ${NAME}* -print -quit)"; then
+                echo "Skipping $NAME"
+                continue
+        fi
         mkdir -p $OUTDIR
         java -cp $CP net.sf.saxon.Transform -xsl:transformations/transform.xslt -s:$i -o:$OUTDIR/output.xml PREFIX=$PREFIX PROCESS_ONLY=$AVAILABLE_SHOTS CONTACT_PERSON="$CONTACT_PERSON"
         sanitycheck $OUTDIR/output.xml $ZF_DIR
