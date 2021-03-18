@@ -143,6 +143,7 @@
                     </xsl:call-template>
 
                     <xsl:apply-templates select="VERZE-SOTU"/>
+                    <xsl:apply-templates select="PUVOD-SOTU"/>
                </dublin_core>
                <dublin_core schema="metashare">
                     <xsl:call-template name="dcvalue">
@@ -243,5 +244,22 @@
                          <xsl:with-param name="value" select="$iso_code"/>
                  </xsl:call-template>
          </xsl:if>
+     </xsl:template>
+
+     <xsl:template match="PUVOD-SOTU">
+        <xsl:variable name="val">
+                <xsl:choose>
+                        <xsl:when test="contains(., 'Aktualita')">
+                                <xsl:value-of select="replace(., 'Aktualita ', 'Aktualita::')"/>
+                        </xsl:when>
+                        <xsl:otherwise>
+                                <xsl:value-of select="."/>
+                        </xsl:otherwise>
+                </xsl:choose>
+        </xsl:variable>
+        <xsl:call-template name="dcvalue">
+                 <xsl:with-param name="element" select="'subject'"/>
+                 <xsl:with-param name="value" select="$val"/>
+        </xsl:call-template>
      </xsl:template>
 </xsl:stylesheet>
