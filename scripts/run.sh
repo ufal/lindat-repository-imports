@@ -11,6 +11,7 @@ export SHELLOPTS
 
 WD=$(dirname $(readlink -e $0))/..
 TMP=${TMP:-$(mktemp -d)}
+MD_ONLY=${MD_ONLY:-FALSE}
 
 CP=${CP:-/mnt/c/Users/ko_ok/.m2/repository/net/sf/saxon/Saxon-HE/9.9.1-6/Saxon-HE-9.9.1-6.jar}
 
@@ -58,7 +59,12 @@ function output2import {
         local f
         # should be only one file
         for f in "$MOV_DIR/*sot${SHOT_NO}*.mov"; do
-            cp $f $ID/
+		if [ "FALSE" = "$MD_ONLY" ]; then
+            		cp $f $ID/
+		else
+			local n=$(basename $f)
+			touch $ID/$n
+		fi
             echo -e "$(basename $f)\tbundle:ORIGINAL\tdescription:data" >> $ID/contents
         done
         echo "$HDL" > $ID/handle
