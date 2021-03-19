@@ -45,6 +45,16 @@
           <xsl:variable name="PADDED_NO" select="format-integer(CISLO-SOTU, '00')"/>   
           <xsl:variable name="SHOT_PID" select="concat($ZF_PID, '-', $PADDED_NO)"/>
           <xsl:variable name="SHOT_ID" select="concat($ZF_ID, '-', $PADDED_NO)"/>
+          <xsl:variable name="issued">
+                         <xsl:choose>
+                              <xsl:when test="ROK-VYROBY-SOTU/text()">
+                                   <xsl:value-of select="ROK-VYROBY-SOTU"/>
+                              </xsl:when>
+                              <xsl:otherwise>
+                                   <xsl:value-of select="DAT-VYROBY-SOTU"/>
+                              </xsl:otherwise>
+                         </xsl:choose>
+          </xsl:variable>
           <item>
                <dublin_core schema="dc">
                     <!-- dc.title TODO: NAZEV-SKUT-SOTU NAZEV-ORIG-SOTU NAZEV-SOTU-ANGL -->
@@ -110,16 +120,6 @@
                     </xsl:call-template>
 
                     <!-- date.issued shortened to just year, ie. from yyyy-mm-dd to just yyyy -->
-                    <xsl:variable name="issued">
-                                   <xsl:choose>
-                                        <xsl:when test="ROK-VYROBY-SOTU/text()">
-                                             <xsl:value-of select="ROK-VYROBY-SOTU"/>
-                                        </xsl:when>
-                                        <xsl:otherwise>
-                                             <xsl:value-of select="DAT-VYROBY-SOTU"/>
-                                        </xsl:otherwise>
-                                   </xsl:choose>
-                    </xsl:variable>
                     <xsl:call-template name="dcvalue">
                               <xsl:with-param name="element" select="'date'"/>
                               <xsl:with-param name="qualifier" select="'issued'"/>
@@ -157,6 +157,35 @@
                               <xsl:with-param name="element" select="'contact'"/>
                               <xsl:with-param name="qualifier" select="'person'"/>
                               <xsl:with-param name="value" select="$CONTACT_PERSON"/>
+                    </xsl:call-template>
+
+                    <xsl:variable name="refboxFMT">
+                            <xsl:variable name="author">
+                                    <xsl:choose>
+                                            <xsl:when test="VYROBCE-SOTU/text()">
+                                                    <xsl:value-of select="'{authors}, '"/>
+                                            </xsl:when>
+                                            <xsl:otherwise>
+                                                    <xsl:value-of select="''"/>
+                                            </xsl:otherwise>
+                                    </xsl:choose>
+                            </xsl:variable>
+                            <xsl:variable name="year">
+                                    <xsl:choose>
+                                            <xsl:when test="not(contains($issued,'0000'))">
+                                                    <xsl:value-of select="'{year}, '"/>
+                                            </xsl:when>
+                                            <xsl:otherwise>
+                                                    <xsl:value-of select="''"/>
+                                            </xsl:otherwise>
+                                    </xsl:choose>
+                            </xsl:variable>
+                            <xsl:value-of select="concat('{title}, ', $author, $year, '{publisher}, ', '{repository}, ', '{pid}.')"/>
+                    </xsl:variable>
+                    <xsl:call-template name="dcvalue">
+                              <xsl:with-param name="element" select="'refbox'"/>
+                              <xsl:with-param name="qualifier" select="'format'"/>
+                              <xsl:with-param name="value" select="$refboxFMT"/>
                     </xsl:call-template>
                </dublin_core>
           </item>
