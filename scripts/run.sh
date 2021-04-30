@@ -38,6 +38,33 @@ function sanitycheck {
     fi
 }
 
+function addFiles {
+    local MOV_DIR=$1
+    local SHOT_NO=$2
+    local ID=$3
+
+    local f
+    local suffix
+    local description
+    # should be only one file per suffix
+    for suffix in mov mp4; do
+        for f in "$MOV_DIR/*sot${SHOT_NO}*.$suffix"; do
+            if [ "FALSE" = "$MD_ONLY" ]; then
+                cp $f $ID/
+            else
+                local n=$(basename $f)
+                touch $ID/$n
+            fi
+            if [ "$suffix" = "mov" ]; then
+                description="best quality"
+            else
+                description="lower quality"
+            fi
+            echo -e "$(basename $f)\tbundle:ORIGINAL\tdescription:$description" >> $ID/contents
+        done
+    done
+}
+
 function output2import {
     local OUTDIR=$1
     local MOV_DIR=$2
@@ -56,17 +83,7 @@ function output2import {
         for schema in `xmllint --xpath '/root/item/dublin_core[@schema!="dc"]/@schema' output.xml | sed -e 's#schema=#\n#g' -e's#"##g' | tr -d ' ' | grep . |  sort -u`; do
             xmllint --xpath "/root/item[$i]/dublin_core[@schema='$schema']" output.xml| xmllint --encode UTF-8 --format - > $ID/metadata_$schema.xml
         done
-        local f
-        # should be only one file
-        for f in "$MOV_DIR/*sot${SHOT_NO}*.mov"; do
-		if [ "FALSE" = "$MD_ONLY" ]; then
-            		cp $f $ID/
-		else
-			local n=$(basename $f)
-			touch $ID/$n
-		fi
-            echo -e "$(basename $f)\tbundle:ORIGINAL\tdescription:data" >> $ID/contents
-        done
+	addFiles $MOV_DIR $SHOT_NO $ID
         echo "$HDL" > $ID/handle
         # todo license.txt?
     done
