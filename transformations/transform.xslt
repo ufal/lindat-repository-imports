@@ -203,13 +203,13 @@
 
      <xsl:template name="osobnosti">
          <xsl:param name="cislo_sotu"/> 
-         <xsl:for-each select="/FILM/OSOBNOST/CISLOSOTU[text()=$cislo_sotu]/..">
+         <xsl:for-each-group select="/FILM/OSOBNOST/CISLOSOTU[text()=$cislo_sotu]/.." group-by="PRIJMENIJMENO">
                     <xsl:call-template name="dcvalue">
                          <xsl:with-param name="element" select="'subject'"/>
                          <!-- TODO: "Prijmeni, Jmeno" at jsme konzistenti s autorama, ale ono je to asi jedno, hazim to na hromadu keywords-->
                          <xsl:with-param name="value" select="concat('People::', PRIJMENIJMENO)"/>
                     </xsl:call-template>
-         </xsl:for-each>
+         </xsl:for-each-group>
      </xsl:template>
 
      <xsl:template name="dcvalue">
