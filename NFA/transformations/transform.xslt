@@ -60,7 +60,7 @@
                     <!-- dc.title TODO: NAZEV-SKUT-SOTU NAZEV-ORIG-SOTU NAZEV-SOTU-ANGL -->
                     <xsl:call-template name="dcvalue">
                          <xsl:with-param name="element" select="'title'"/>
-                         <xsl:with-param name="value" select="NAZEV-SOTU"/>
+                         <xsl:with-param name="value" select="NAZEV-SOTU-ANGL"/>
                     </xsl:call-template>
                     <!-- dc.identifier.uri handle should go also to `handle` file -->
                     <xsl:call-template name="dcvalue">
@@ -75,7 +75,7 @@
                     </xsl:call-template>
                     <xsl:call-template name="dcvalue">
                          <xsl:with-param name="element" select="'description'"/>
-                         <xsl:with-param name="value" select="OBSAH-SOTU"/>
+                         <xsl:with-param name="value" select="OBSAH-SOTU-ANGL"/>
                     </xsl:call-template>
                     <xsl:for-each select="KLIC-SLOVO-SOTU">
                          <xsl:call-template name="dcvalue">
