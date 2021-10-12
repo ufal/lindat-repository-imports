@@ -19,6 +19,8 @@
      <xsl:variable name="ZF_PID" select="concat($PREFIX, '/', /FILM/FILMID)"/>
      <xsl:variable name="ZF_ID" select="/FILM/FILMID"/>
 
+     <xsl:variable name="OSOBNOSTI" select="document('Xosobn.xml')/OSOBNOSTI"/>
+
      <xsl:variable name="ROOT" select="/"/>
 
      <xsl:template match="/">
@@ -204,10 +206,23 @@
      <xsl:template name="osobnosti">
          <xsl:param name="cislo_sotu"/> 
          <xsl:for-each-group select="/FILM/OSOBNOST/CISLOSOTU[text()=$cislo_sotu]/.." group-by="PRIJMENIJMENO">
+                 <xsl:variable name="OS" select="$OSOBNOSTI/OSOBNOST[ID/text()=current()/CISLO/text()]"/>
+                 <xsl:variable name="NAR" select="tokenize($OS/DATUM_NAROZENI,'-')[1]"/>
+                 <xsl:variable name="UMR">
+                         <xsl:choose>
+                                 <xsl:when test="$OS/DATUM_UMRTI">
+                                         <xsl:value-of select="tokenize($OS/DATUM_UMRTI, '-')[1]"/>
+                                 </xsl:when>
+                                 <xsl:otherwise>
+                                         <xsl:value-of select="''"/>
+                                 </xsl:otherwise>
+                         </xsl:choose>
+                 </xsl:variable>
+                 <xsl:variable name="HESLO" select="concat(PRIJMENIJMENO, ' (',$NAR, '-', $UMR, ')')"/>
                     <xsl:call-template name="dcvalue">
                          <xsl:with-param name="element" select="'subject'"/>
                          <!-- TODO: "Prijmeni, Jmeno" at jsme konzistenti s autorama, ale ono je to asi jedno, hazim to na hromadu keywords-->
-                         <xsl:with-param name="value" select="concat('People::', PRIJMENIJMENO)"/>
+                         <xsl:with-param name="value" select="concat('People::', $HESLO)"/>
                     </xsl:call-template>
          </xsl:for-each-group>
      </xsl:template>
