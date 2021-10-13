@@ -34,9 +34,11 @@
                <xsl:for-each select="tokenize($PROCESS_ONLY_IDS, ';')">
                     <!-- for-each operates on a sequence of string value (i.e. inside the for-each body the context item is a string value)
                          that's why we need $ROOT
-                         Don't know why we need variable value-of; but not working without it
+                         Don't know why we need variable value-of; but not working without it.
+                         Anyway, with the second collection we need to trim any leading zeros, as CISLO-SOTU is
+                         without them but they might be in file names (thus in $PROCESS_ONLY_IDS)
                      -->
-                    <xsl:variable name="cislo"><xsl:value-of select="."></xsl:value-of></xsl:variable>
+                    <xsl:variable name="cislo"><xsl:value-of select="replace(., '^0+', '')"></xsl:value-of></xsl:variable>
                     <xsl:apply-templates select="$ROOT/FILM/SOT-ZF[CISLO-SOTU/text()=$cislo]"/>
                </xsl:for-each>
           </root>
