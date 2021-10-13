@@ -121,5 +121,5 @@ nfa2dspace
 
 popd
 
-mv "$TMP" import
+mv -v "$TMP" import
 
