@@ -50,7 +50,9 @@ function addFiles {
     local description
     # should be only one file per suffix
     for suffix in mov mp4; do
-        for f in "$MOV_DIR/*sot${SHOT_NO}*.$suffix"; do
+        # Mnichov: ZF_0340_3900403_sot3_hd-master.mov
+        # Galerie: 3901034_26_hd-master.mov
+        find $MOV_DIR/ -type f \( -name "*sot${SHOT_NO}*.$suffix" -o -name "*_${SHOT_NO}_*.$suffix" \) | while read -r f; do
             if [ "FALSE" = "$MD_ONLY" ]; then
                 cp $f $ID/
             else
