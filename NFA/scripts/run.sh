@@ -24,7 +24,9 @@ function getAvailableShots {
     local MOV_DIR=$1
     local j
     for j in $MOV_DIR/*.mov; do
-        echo $j | sed -e 's/.*\(sot\([0-9]\+\)\).*/\2/'
+        # Mnichov: ZF_0340_3900403_sot3_hd-master.mov -> 3
+        # Galerie: 3901034_26_hd-master.mov -> 26
+        echo $j | sed -E -e 's/.*(sot|_)([0-9]+)_.*/\2/'
     done | paste -d\; -s
 }
 
