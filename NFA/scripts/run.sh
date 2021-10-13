@@ -85,7 +85,7 @@ function output2import {
         for schema in `xmllint --xpath '/root/item/dublin_core[@schema!="dc"]/@schema' output.xml | sed -e 's#schema=#\n#g' -e's#"##g' | tr -d ' ' | grep . |  sort -u`; do
             xmllint --xpath "/root/item[$i]/dublin_core[@schema='$schema']" output.xml| xmllint --encode UTF-8 --format - > $ID/metadata_$schema.xml
         done
-	addFiles $MOV_DIR $SHOT_NO $ID
+        addFiles $MOV_DIR $SHOT_NO $ID
         echo "$HDL" > $ID/handle
         # todo license.txt?
     done
@@ -102,7 +102,7 @@ function nfa2dspace {
         local OUTDIR=$TMP/$NAME
         local ZF_DIR=$(dirname $i)
         local AVAILABLE_SHOTS=$(getAvailableShots $ZF_DIR)
-	if test -n "$(find $TMP -maxdepth 1 -type d -name ${NAME}* -print -quit)"; then
+        if test -n "$(find $TMP -maxdepth 1 -type d -name ${NAME}* -print -quit)"; then
                 echo "Skipping $NAME"
                 continue
         fi
