@@ -117,6 +117,7 @@ pushd $WD
 
 nfa2dspace
 
+popd
+
 mv "$TMP" import
 
-popd
