@@ -23,8 +23,8 @@
 
      <xsl:variable name="collection">
          <xsl:choose>
-             <xsl:when test="contains(/NAZEV-KATALOG/text(), 'GALERIE OSOBNOSTÍ')">GALERIE</xsl:when>
-             <xsl:when test="contains(/NAZEV-KATALOG/text(), 'FILMOVÍ PRACOVNÍCI')">GALERIE</xsl:when>
+             <xsl:when test="contains(/FILM/NAZEV-KATALOG/text(), 'GALERIE OSOBNOSTÍ')">GALERIE</xsl:when>
+             <xsl:when test="contains(/FILM/NAZEV-KATALOG/text(), 'FILMOVÍ PRACOVNÍCI')">GALERIE</xsl:when>
              <xsl:otherwise>MNICHOV</xsl:otherwise>
          </xsl:choose>
      </xsl:variable>
