@@ -21,6 +21,20 @@
 
      <xsl:variable name="OSOBNOSTI" select="document('Xosobn.xml')/OSOBNOSTI"/>
 
+     <xsl:variable name="collection">
+         <xsl:choose>
+             <xsl:when test="contains(/NAZEV-KATALOG/text(), 'GALERIE OSOBNOSTÍ')">GALERIE</xsl:when>
+             <xsl:when test="contains(/NAZEV-KATALOG/text(), 'FILMOVÍ PRACOVNÍCI')">GALERIE</xsl:when>
+             <xsl:otherwise>MNICHOV</xsl:otherwise>
+         </xsl:choose>
+     </xsl:variable>
+    <xsl:variable name="fixed_subject">
+        <xsl:choose>
+            <xsl:when test="$collection='MNICHOV'">Mnichovská dohoda</xsl:when>
+            <xsl:when test="$collection='GALERIE'">Galerie osobností</xsl:when>
+        </xsl:choose>
+    </xsl:variable>
+
      <xsl:variable name="ROOT" select="/"/>
 
      <xsl:template match="/">
@@ -90,22 +104,10 @@
                     <!-- Fixed subject value, ensures there's at least one subject -->
                     <xsl:call-template name="dcvalue">
                               <xsl:with-param name="element" select="'subject'"/>
-                              <xsl:with-param name="value" select="'Mnichovská dohoda'"/>
+                              <xsl:with-param name="value" select="$fixed_subject"/>
                     </xsl:call-template>
-                    <xsl:call-template name="dcvalue">
-                              <xsl:with-param name="element" select="'contributor'"/>
-                              <xsl:with-param name="qualifier" select="'author'"/>
-                              <xsl:with-param name="value">
-                                   <xsl:choose>
-                                        <xsl:when test="VYROBCE-SOTU/text()">
-                                             <xsl:value-of select="VYROBCE-SOTU"/>
-                                        </xsl:when>
-                                        <xsl:otherwise>
-                                             <xsl:value-of select="'(:unav) Unknown author'"/>
-                                        </xsl:otherwise>
-                                   </xsl:choose>
-                              </xsl:with-param>
-                    </xsl:call-template>
+                    <!-- dc.contributor.author -->
+                    <xsl:call-template name="author"/>
                     <!-- <xsl:copy-of select="." />-->
                     <xsl:call-template name="exteriery">
                          <xsl:with-param name="cislo_sotu" select="CISLO-SOTU"/>
@@ -195,15 +197,39 @@
           </item>
      </xsl:template>
 
-     <xsl:template name="exteriery">
-         <xsl:param name="cislo_sotu"/> 
-         <xsl:for-each select="/FILM/EXTERIER/EXT-CIS-SOTU[text()=$cislo_sotu]/..">
-               <xsl:call-template name="dcvalue">
-                    <xsl:with-param name="element" select="'subject'"/>
-                    <xsl:with-param name="value" select="concat('Places::', replace(replace(replace(EXT-TEXT, ':', '::'), ',', '::'), '/ext.::', '/ext.,'))"/>
-               </xsl:call-template>
-         </xsl:for-each>
+     <xsl:template name="author">
+         <xsl:call-template name="dcvalue">
+             <xsl:with-param name="element" select="'contributor'"/>
+             <xsl:with-param name="qualifier" select="'author'"/>
+             <xsl:with-param name="value">
+                 <xsl:choose>
+                     <xsl:when test="VYROBCE-SOTU/text()">
+                         <xsl:value-of select="VYROBCE-SOTU"/>
+                     </xsl:when>
+                     <xsl:when test="$collection='MNICHOV'">
+                         <xsl:value-of select="'(:unav) Unknown author'"/>
+                     </xsl:when>
+                 </xsl:choose>
+             </xsl:with-param>
+         </xsl:call-template>
+         <xsl:if test="$collection='GALERIE'">
+             <xsl:call-template name="dcvalue">
+                 <xsl:with-param name="element" select="'contributor'"/>
+                 <xsl:with-param name="qualifier" select="'author'"/>
+                 <xsl:with-param name="value">Veselý, Bohumil</xsl:with-param>
+             </xsl:call-template>
+         </xsl:if>
      </xsl:template>
+
+    <xsl:template name="exteriery">
+        <xsl:param name="cislo_sotu"/>
+        <xsl:for-each select="/FILM/EXTERIER/EXT-CIS-SOTU[text()=$cislo_sotu]/..">
+            <xsl:call-template name="dcvalue">
+                <xsl:with-param name="element" select="'subject'"/>
+                <xsl:with-param name="value" select="concat('Places::', replace(replace(replace(EXT-TEXT, ':', '::'), ',', '::'), '/ext.::', '/ext.,'))"/>
+            </xsl:call-template>
+        </xsl:for-each>
+    </xsl:template>
 
      <xsl:template name="osobnosti">
          <xsl:param name="cislo_sotu"/> 
