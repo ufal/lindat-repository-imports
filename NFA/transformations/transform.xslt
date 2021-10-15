@@ -142,11 +142,8 @@
                     </xsl:call-template>
                     <!-- /date.issued -->
 
-                    <xsl:call-template name="dcvalue">
-                              <xsl:with-param name="element" select="'rights'"/>
-                              <xsl:with-param name="qualifier" select="'uri'"/>
-                              <xsl:with-param name="value" select="'http://creativecommons.org/licenses/by-nc-nd/4.0/'"/>
-                    </xsl:call-template>
+                   <!-- dc.rights.* -->
+                   <xsl:call-template name="rights"/>
 
                     <xsl:apply-templates select="VERZE-SOTU"/>
                     <xsl:apply-templates select="PUVOD-SOTU"/>
@@ -254,6 +251,23 @@
                     </xsl:call-template>
          </xsl:for-each-group>
      </xsl:template>
+
+    <xsl:template name="rights">
+        <xsl:call-template name="dcvalue">
+            <xsl:with-param name="element" select="'rights'"/>
+            <xsl:with-param name="qualifier" select="'uri'"/>
+            <xsl:with-param name="value" select="'http://creativecommons.org/licenses/by-nc-nd/4.0/'"/>
+        </xsl:call-template>
+        <xsl:call-template name="dcvalue">
+            <xsl:with-param name="element" select="'rights'"/>
+            <xsl:with-param name="value" select="'Creative Commons - Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)'"/>
+        </xsl:call-template>
+        <xsl:call-template name="dcvalue">
+            <xsl:with-param name="element" select="'rights'"/>
+            <xsl:with-param name="qualifier" select="'label'"/>
+            <xsl:with-param name="value" select="'PUB'"/>
+        </xsl:call-template>
+    </xsl:template>
 
      <xsl:template name="dcvalue">
           <xsl:param name="element"/>
