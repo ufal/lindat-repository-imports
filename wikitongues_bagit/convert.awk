@@ -32,7 +32,8 @@ END{
 }
 
 /^Description/ {
-        nqdc("description", $NF)
+        value=gensub("\nThis video is licensed under a Creative Commons Attribution-NonCommercial 4.0 International license. To download a copy, please contact hello@wikitongues.org.", "", "1", $NF)
+        nqdc("description", value)
         next;
 }
 
