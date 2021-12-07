@@ -96,5 +96,10 @@ function dcvalue(element, qualifier, value){
         value=gensub(">", "\\&gt;", "g", value)
         value=gensub("<", "\\&lt;", "g", value)
         value=gensub("&", "\\&amp;", "g", value)
+
+        if(element!="description"){
+                value=gensub("\"", "", "g", value)
+        }
+
         print "<dcvalue element=\"" element "\" qualifier=\"" qualifier "\">" value  "</dcvalue>"
 }
