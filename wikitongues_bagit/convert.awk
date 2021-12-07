@@ -1,7 +1,5 @@
 #!/usr/bin/awk -f
 
-#TODO check license gets name and label when imported
-
 BEGIN{
         RS="\n\n\n";
         FS=": ";
@@ -39,9 +37,12 @@ END{
 }
 
 /^Rights/ {
-        # TODO something smarter
         if($NF="CC BY-NC 4.0"){
                 dcvalue("rights", "uri", "http://creativecommons.org/licenses/by-nc/4.0/")
+                dcvalue("rights", "label", "PUB")
+                nqdc("rights", "Creative Commons - Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)")
+        }else{
+                print "No mapping for license " $NF > "/dev/stderr"
         }
         next;
 }
