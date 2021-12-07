@@ -22,7 +22,10 @@ END{
 }
 
 /^Creator/ {
-        dcvalue("contributor", "author", $NF)
+        dcvalue("identifier", "other", $NF)
+        split($NF, a, "_")
+        # assume first_last_date
+        dcvalue("contributor", "author", a[2] ", " a[1])
         next;
 }
 
