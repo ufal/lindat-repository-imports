@@ -58,6 +58,11 @@ END{
         next;
 }
 
+/^Subject:.*Origin/ {
+        print "Ignoring field no. " NR ": " $0 > "/dev/stderr"
+        next;
+}
+
 /^Subject:/ {
         for(i=2;i<=NF;i++){
                 if(val){
