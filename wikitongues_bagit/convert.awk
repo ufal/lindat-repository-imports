@@ -92,7 +92,9 @@ function nqdc(element, value){
         dcvalue(element, "none", value)
 }
 
-#TODO sanitazi value to be xml safe
 function dcvalue(element, qualifier, value){
+        value=gensub(">", "\\&gt;", "g", value)
+        value=gensub("<", "\\&lt;", "g", value)
+        value=gensub("&", "\\&amp;", "g", value)
         print "<dcvalue element=\"" element "\" qualifier=\"" qualifier "\">" value  "</dcvalue>"
 }
