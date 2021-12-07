@@ -6,8 +6,10 @@ BEGIN{
         print "<dublin_core schema=\"dc\">";
 }
 END{
-        # mandatory fixed value
+        ### fixed values ###
+        # mandatory
         nqdc("type", "languageDescription");
+        nqdc("subject", "Wikitongues");
         print "</dublin_core>";
 }
 /^Identifier/ {
