@@ -53,12 +53,32 @@ function add_content {
 function process_manifest {
         local MANIFEST=$1
         local bundle
-        cat $MANIFEST | sed -e 's/\s\+/ /g' | cut -d' ' -f2 |
+        sed -e 's/\s\+/ /g' $MANIFEST | cut -d' ' -f2 |
         while read -r line; do
             #bitsream description
-            description=$(echo $line | sed -e 's/__/ /' -e 's/\..\{3,4\}$//' | cut -d' ' -f2)
+            local description=$(echo $line | sed -e 's/__/ /' -e 's/\..\{3,4\}$//' | cut -d' ' -f2)
             if [ "$description" = "metadata" ]; then
                 bundle=METADATA
+            elif echo "$description" | grep -q "thumbnail" ; then
+                bundle=THUMBNAIL
+                # thumbnail must have the same name as "ORIGINAL", suffix will be .mp4.jpg
+                # keep the original file name in description
+                local thumb_name=$(basename $line)
+                description=$thumb_name
+
+                local thumb_suffix=${thumb_name##*.}
+                # XXX lets hope all wikitongues bags have mp4
+                local original_name=$(basename $(sed -e 's/\s\+/ /g' $MANIFEST | cut -d' ' -f2 | grep "\.mp4"))
+                if [ -z "$original_name" ]; then
+                        echo "WARN: can't find mp4 in ${MANIFEST}, thumbnail not added." >&2
+                        continue;
+                fi
+                local new_thumb_name=${original_name}.${thumb_suffix}
+                # copy the thumbnail under new name
+                cp $BAG_DIR/$line ./$new_thumb_name
+                echo -e "$new_thumb_name\tbundle:$bundle\tdescription:$description" >> contents
+                # XXX skip "default" add_content
+                continue;
             else
                 bundle=$2
             fi
