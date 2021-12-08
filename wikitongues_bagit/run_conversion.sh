@@ -42,11 +42,33 @@ cat >metadata_metashare.xml <<EOF
 EOF
 
 #### CONTENT ####
-cat $BAG_DIR/manifest-sha256.txt | sed -e 's/\s\+/ /g' | cut -d' ' -f2 |
-        while read line; do
-            #local description
+function add_content {
+    local line=$1
+    local bundle=$2
+    local description=$3
+    echo -e "$(basename $line)\tbundle:$bundle\tdescription:$description" >> contents
+    cp $BAG_DIR/$line .
+}
+
+function process_manifest {
+        local MANIFEST=$1
+        local bundle
+        cat $MANIFEST | sed -e 's/\s\+/ /g' | cut -d' ' -f2 |
+        while read -r line; do
+            #bitsream description
             description=$(echo $line | sed -e 's/__/ /' -e 's/\..\{3,4\}$//' | cut -d' ' -f2)
-            echo -e "$(basename $line)\tbundle:ORIGINAL\tdescription:$description" >> contents
-	    cp $BAG_DIR/$line .
+            if [ "$description" = "metadata" ]; then
+                bundle=METADATA
+            else
+                bundle=$2
+            fi
+            add_content "$line" "$bundle" "$description"
         done;
+}
+process_manifest $(find $BAG_DIR -type f -name 'manifest-*.txt' | head -n 1) ORIGINAL
+process_manifest $(find $BAG_DIR -type f -name 'tagmanifest-*.txt' | head -n 1) METADATA
+find $BAG_DIR -type f -name 'tagmanifest-*.txt' | while read -r line; do
+        # remove BAG_DIR from start; it's added in add_content
+        add_content "${line##$BAG_DIR}" "METADATA" "$(basename $line .txt)"
+done
 popd
