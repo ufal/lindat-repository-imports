@@ -7,6 +7,7 @@
      <xsl:param name="PREFIX" select="'$PREFIX'"/>
      <xsl:param name="PROCESS_ONLY" select="'-1'"/>
      <xsl:param name="CONTACT_PERSON" />
+     <xsl:param name="COLLECTION" select="'MNICHOV'"/>
 
      <!-- if PROCESS_ONLY unspecified (-1) process all -->
      <xsl:variable name="PROCESS_ONLY_IDS">
@@ -25,13 +26,14 @@
          <xsl:choose>
              <xsl:when test="contains(/FILM/NAZEV-KATALOG/text(), 'GALERIE OSOBNOSTÍ')">GALERIE</xsl:when>
              <xsl:when test="contains(/FILM/NAZEV-KATALOG/text(), 'FILMOVÍ PRACOVNÍCI')">GALERIE</xsl:when>
-             <xsl:otherwise>MNICHOV</xsl:otherwise>
+	     <xsl:otherwise><xsl:value-of select="$COLLECTION"/></xsl:otherwise>
          </xsl:choose>
      </xsl:variable>
     <xsl:variable name="fixed_subject">
         <xsl:choose>
             <xsl:when test="$collection='MNICHOV'">Mnichovská dohoda</xsl:when>
             <xsl:when test="$collection='GALERIE'">Galerie osobností</xsl:when>
+            <xsl:when test="$collection='HEYDRICH'">Heydrichiáda</xsl:when>
         </xsl:choose>
     </xsl:variable>
 

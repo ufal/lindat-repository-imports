@@ -18,6 +18,7 @@ CP=${CP:-/mnt/c/Users/ko_ok/.m2/repository/net/sf/saxon/Saxon-HE/9.9.1-6/Saxon-H
 DATADIR=${DATADIR:-$WD/NFA}
 PREFIX=${PREFIX:-123456789}
 CONTACT_PERSON=${CONTACT_PERSON:-Tomáš@@Fuk@@fuk@example.com@@Example ltd.}
+COLLECTION=${COLLECTION}
 
 
 function getAvailableShots {
@@ -112,7 +113,7 @@ function nfa2dspace {
                 continue
         fi
         mkdir -p $OUTDIR
-        java -cp $CP net.sf.saxon.Transform -xsl:transformations/transform.xslt -s:$i -o:$OUTDIR/output.xml PREFIX=$PREFIX PROCESS_ONLY=$AVAILABLE_SHOTS CONTACT_PERSON="$CONTACT_PERSON"
+        java -cp $CP net.sf.saxon.Transform -xsl:transformations/transform.xslt -s:$i -o:$OUTDIR/output.xml PREFIX=$PREFIX PROCESS_ONLY=$AVAILABLE_SHOTS CONTACT_PERSON="$CONTACT_PERSON" COLLECTION="$COLLECTION"
         sanitycheck $OUTDIR/output.xml $ZF_DIR
         output2import "$OUTDIR" $ZF_DIR
     done
