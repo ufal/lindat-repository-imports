@@ -205,7 +205,7 @@
                      <xsl:when test="VYROBCE-SOTU/text()">
                          <xsl:value-of select="VYROBCE-SOTU"/>
                      </xsl:when>
-                     <xsl:when test="$collection='MNICHOV'">
+                     <xsl:when test="not($collection='GALERIE')">
                          <xsl:value-of select="'(:unav) Unknown author'"/>
                      </xsl:when>
                  </xsl:choose>
