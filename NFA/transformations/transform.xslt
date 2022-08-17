@@ -303,6 +303,9 @@
                      <xsl:when test="$cislo_verze='010'">
                              <xsl:value-of select="'slk'"/>
                      </xsl:when>
+		     <xsl:when test="$cislo_verze='040'">
+			     <xsl:value-of select="'eng'"/>
+		     </xsl:when>
                      <xsl:when test="$cislo_verze='220'">
                              <xsl:value-of select="'deu'"/>
                      </xsl:when>
