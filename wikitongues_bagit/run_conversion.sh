@@ -13,7 +13,7 @@ WD=$(dirname $(readlink -e $0))
 BAG_DIR=$(readlink -e $1)
 MD_FILE=$(find "$BAG_DIR"/ -type f -name '*metadata.txt' | head -n 1)
 BAG_INFO=$(find "$BAG_DIR"/ -type f -name 'bag-info.txt' | head -n 1)
-OUT_DIR=$(mktemp -d)
+OUT_DIR=$(readlink -e ${2:-$(mktemp -d)})
 
 pushd $OUT_DIR 
 
