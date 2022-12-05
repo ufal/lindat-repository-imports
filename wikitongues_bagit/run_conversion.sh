@@ -20,7 +20,8 @@ pushd $OUT_DIR
 
 #### METADATA ####
 echo "Omitting $(grep -c undefined $MD_FILE) undefined values " >&2
-grep -v undefined "$MD_FILE" | sed -r '/:/s/^/\n\n/' | $WD/convert.awk > dublin_core.xml
+# decorate urls so they don't match
+grep -v undefined "$MD_FILE" | sed -e 's#://#__URL__#g' | sed -r '/:/s/^/\n\n/' | sed -e 's#__URL__#://#g' | $WD/convert.awk > dublin_core.xml
 
 # extract contact person
 email=$(grep Email: $BAG_INFO | cut -d' ' -f2-)
