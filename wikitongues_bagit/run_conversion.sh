@@ -44,26 +44,36 @@ EOF
 #### CONTENT ####
 function add_content {
     local line=$1
+    if [ ! -e "$BAG_DIR/$line" ]; then
+        # file does not exist, try unicode normalization on the line and test again
+        line2=$(python3 -c "import unicodedata; print(unicodedata.normalize('NFC', '$line'))")
+        if [ ! -e "$BAG_DIR/$line2" ]; then
+            echo "Error: Neither \"$line\" nor \"$line2\" exists." >&2
+            exit 3;
+        else
+            line=$line2
+        fi
+    fi
     local bundle=$2
     local description=$3
-    echo -e "$(basename $line)\tbundle:$bundle\tdescription:$description" >> contents
-    cp $BAG_DIR/$line .
+    echo -e "$(basename "$line")\tbundle:$bundle\tdescription:$description" >> contents
+    cp "$BAG_DIR/$line" .
 }
 
 function process_manifest {
         local MANIFEST=$1
         local bundle
-        sed -e 's/\s\+/ /g' $MANIFEST | cut -d' ' -f2 |
+        sed -e 's/\s\+/ /' $MANIFEST | cut -d' ' -f2- |
         while read -r line; do
             #bitsream description
-            local description=$(echo $line | sed -e 's/__/ /' -e 's/\..\{3,4\}$//' | cut -d' ' -f2)
+            local description=$(echo "$line" | sed -e 's/__/ /' -e 's/\..\{3,4\}$//' | cut -d' ' -f2)
             if [ "$description" = "metadata" ]; then
                 bundle=METADATA
             elif echo "$description" | grep -q "thumbnail" ; then
                 bundle=THUMBNAIL
                 # thumbnail must have the same name as "ORIGINAL", suffix will be .mp4.jpg
                 # keep the original file name in description
-                local thumb_name=$(basename $line)
+                local thumb_name=$(basename "$line")
                 description=$thumb_name
 
                 local thumb_suffix=${thumb_name##*.}
@@ -75,7 +85,7 @@ function process_manifest {
                 fi
                 local new_thumb_name=${original_name}.${thumb_suffix}
                 # copy the thumbnail under new name
-                cp $BAG_DIR/$line ./$new_thumb_name
+                cp "$BAG_DIR/$line" "./$new_thumb_name"
                 echo -e "$new_thumb_name\tbundle:$bundle\tdescription:$description" >> contents
                 # XXX skip "default" add_content
                 continue;
