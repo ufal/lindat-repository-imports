@@ -20,8 +20,11 @@ pushd $OUT_DIR
 
 #### METADATA ####
 echo "Omitting $(grep -c undefined $MD_FILE) undefined values " >&2
-# decorate urls so they don't match
+# the first sed decorates urls so they don't match
 grep -v undefined "$MD_FILE" | sed -e 's#://#__URL__#g' | sed -r '/:/s/^/\n\n/' | sed -e 's#__URL__#://#g' | $WD/convert.awk > dublin_core.xml
+# compute hash of the identifier, so it seems opaque, keep only first $SHA_CHARS; conflicts will need to be resolved manually 
+SHA_CHARS=8
+sed -nE "s/^Identifier: (.*)/\1/p" "$MD_FILE" | sha256sum - | sed -E "s/(.{$SHA_CHARS}).*/\1/" > handle
 
 # extract contact person
 email=$(grep Email: $BAG_INFO | cut -d' ' -f2-)
