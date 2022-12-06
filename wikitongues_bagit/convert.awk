@@ -107,6 +107,8 @@ function dcvalue(element, qualifier, value){
         value=gensub(">", "\\&gt;", "g", value)
         value=gensub("<", "\\&lt;", "g", value)
         value=gensub("&", "\\&amp;", "g", value)
+        value=gensub("^[[:space:]]*", "", "1", value)
+        value=gensub("[[:space:]]*$", "", "1", value)
 
         if(element!="description"){
                 value=gensub("\"", "", "g", value)
