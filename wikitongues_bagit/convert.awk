@@ -37,8 +37,8 @@ END{
         next;
 }
 
-/639-3/ {
-        dcvalue("language", "iso", $NF)
+$0 ~ /639-3/ && $0 !~ /Caption/ {
+        split_value_dcvalue("language", "iso", $NF)
         next;
 }
 
@@ -98,6 +98,16 @@ NR>1{
         next;
 }
 
+function split_value_nqdc(element, value){
+        split_value_dcvalue(element, "none", value)
+}
+
+function split_value_dcvalue(element, qualifier, value){
+        n=split(value, a, ",")
+        for(i=1;i<=n;i++){
+            dcvalue(element, qualifier, a[i])
+        }
+}
 
 function nqdc(element, value){
         dcvalue(element, "none", value)
