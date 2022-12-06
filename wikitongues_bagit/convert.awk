@@ -83,7 +83,7 @@ $0 ~ /639-3/ && $0 !~ /Caption/ {
 }
 
 /Glottocode/ {
-        nqdc("subject", "Glottocode::" $NF);
+        split_value_nqdc("subject", $NF, "Glottocode::");
         next;
 }
 
@@ -98,22 +98,25 @@ NR>1{
         next;
 }
 
-function split_value_nqdc(element, value){
-        split_value_dcvalue(element, "none", value)
+function split_value_nqdc(element, value, value_prefix){
+        split_value_dcvalue(element, "none", value, value_prefix)
 }
 
-function split_value_dcvalue(element, qualifier, value){
+# n, a, i are local variables 
+function split_value_dcvalue(element, qualifier, value, value_prefix,    n, a, i){
         n=split(value, a, ",")
         for(i=1;i<=n;i++){
-            dcvalue(element, qualifier, a[i])
+            dcvalue(element, qualifier, a[i], value_prefix)
         }
 }
 
-function nqdc(element, value){
-        dcvalue(element, "none", value)
+# value_prefix is optional
+function nqdc(element, value, value_prefix){
+        dcvalue(element, "none", value, value_prefix)
 }
 
-function dcvalue(element, qualifier, value){
+# value_prefix is optional
+function dcvalue(element, qualifier, value, value_prefix){
         value=gensub(">", "\\&gt;", "g", value)
         value=gensub("<", "\\&lt;", "g", value)
         value=gensub("&", "\\&amp;", "g", value)
@@ -124,5 +127,5 @@ function dcvalue(element, qualifier, value){
                 value=gensub("\"", "", "g", value)
         }
 
-        print "<dcvalue element=\"" element "\" qualifier=\"" qualifier "\">" value  "</dcvalue>"
+        print "<dcvalue element=\"" element "\" qualifier=\"" qualifier "\">" value_prefix value  "</dcvalue>"
 }
