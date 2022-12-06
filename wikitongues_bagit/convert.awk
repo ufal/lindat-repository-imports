@@ -58,7 +58,7 @@ $0 ~ /639-3/ && $0 !~ /Caption/ {
         next;
 }
 
-/^Subject:.*Origin/ {
+/^Subject:.*Origin/ || /^Subject:.*logy per language/ {
         print "Ignoring field no. " NR ": " $0 > "/dev/stderr"
         next;
 }
