@@ -27,7 +27,14 @@ echo "Omitting $(grep -c undefined $MD_FILE) undefined values " >&2
 $WD/convert.awk "$MD_FILE" | xsltproc $WD/distinct.xslt - > dublin_core.xml
 # compute hash of the identifier, so it seems opaque, keep only first $SHA_CHARS; conflicts will need to be resolved manually 
 SHA_CHARS=8
-sed -nE "s/^Identifier: (.*)/\1/p" "$MD_FILE" | sha256sum - | sed -E "s#(.{$SHA_CHARS}).*#${HDL_PREFIX}\1#" > handle
+MD_ID=$(sed -nE "s/^Identifier: (.*)/\1/p" "$MD_FILE")
+if [ -z "$MD_ID" ]; then
+    echo "Error: Identifier not found in $MD_FILE" >&2
+    popd
+    rm -rf "$OUT_DIR"
+    exit 3;
+fi
+echo "$MD_ID" | sha256sum - | sed -E "s#(.{$SHA_CHARS}).*#${HDL_PREFIX}\1#" > handle
 
 # extract contact person
 email=$(grep Email: $BAG_INFO | cut -d' ' -f2-)
