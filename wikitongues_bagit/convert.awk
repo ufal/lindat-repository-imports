@@ -89,15 +89,12 @@ $0 ~ /639-3/ && $0 !~ /Caption/ {
 }
 
 /^Subject:/ {
-        for(i=2;i<=NF;i++){
-                if(val){
-                        val=val "::" $i;
-                }else{
-                        val=$i;
-                }
-
+        val_prefix=""
+        for(i=2;i<NF;i++){
+                val_prefix=$i "::"
         }
-        nqdc("subject", val);
+        val=$NF
+        split_value_nqdc("subject", val, val_prefix);
         val="";
         next;
 }
