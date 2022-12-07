@@ -11,7 +11,11 @@ export SHELLOPTS
 
 WD=$(dirname $(readlink -e $0))
 BAG_DIR=$(readlink -e $1)
-MD_FILE=$(find "$BAG_DIR"/ -type f -name '*metadata.txt' | head -n 1)
+BAG_NAME=$(basename "$BAG_DIR")
+MD_FILE=$(find "$BAG_DIR"/ -type f -name "${BAG_NAME}*metadata.txt" | head -n 1)
+if [ ! -e "$MD_FILE" ]; then
+	MD_FILE=$(find "$BAG_DIR"/ -type f -name "*metadata.txt" | head -n 1)
+fi
 BAG_INFO=$(find "$BAG_DIR"/ -type f -name 'bag-info.txt' | head -n 1)
 OUT_DIR=$(readlink -e ${2:-$(mktemp -d)})
 
