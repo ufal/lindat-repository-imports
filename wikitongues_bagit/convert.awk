@@ -1,7 +1,6 @@
 #!/usr/bin/awk -f
 
 BEGIN{
-        RS="\n\n\n";
         FS=": ";
         print "<dublin_core schema=\"dc\">";
 }
@@ -12,6 +11,35 @@ END{
         nqdc("subject", "Wikitongues");
         print "</dublin_core>";
 }
+
+### XXX This must be near top as it uses getline and we want all the following rules to be triggered ###
+/^Description/ {
+        for(i=2;i<=NF;i++){
+                d=d $i
+        }
+        cnt=1
+        # Read until we find a line starting with Subject
+        while(cnt){
+                if ((getline tmp) > 0) {
+                        if(match(tmp, /^Subject/)){
+                                cnt=0
+                                $0=tmp
+                        } else {
+                            d=d "\n" tmp
+                        }
+                } else {
+                        print("unexpected EOF or error:", ERRNO) > "/dev/stderr"
+                        exit
+                }
+        }
+        value=gensub("\nThis video is licensed under a Creative Commons Attribution-NonCommercial 4.0 International license. To download a copy, please contact hello@wikitongues.org.", "", "1", d)
+        nqdc("description", value)
+}
+
+/undefined/ {
+        next;
+}
+
 /^Identifier/ {
         #print NR, NF, $NF
         dcvalue("identifier", "other", $NF)
@@ -28,12 +56,6 @@ END{
         split($NF, a, "_")
         # assume first_last_date
         dcvalue("contributor", "author", a[2] ", " a[1])
-        next;
-}
-
-/^Description/ {
-        value=gensub("\nThis video is licensed under a Creative Commons Attribution-NonCommercial 4.0 International license. To download a copy, please contact hello@wikitongues.org.", "", "1", $NF)
-        nqdc("description", value)
         next;
 }
 
