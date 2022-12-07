@@ -52,10 +52,13 @@ END{
 }
 
 /^Creator/ {
-        dcvalue("identifier", "other", $NF)
-        split($NF, a, "_")
-        # assume first_last_date
-        dcvalue("contributor", "author", a[2] ", " a[1])
+        n=split($NF, creators, ",")
+        for(i=1;i<=n;i++){
+                dcvalue("identifier", "other", creators[i])
+                split(creators[i], a, "_")
+                # assume first_last_date
+                dcvalue("contributor", "author", trim(a[2]) ", " trim(a[1]))
+        }
         next;
 }
 
@@ -120,6 +123,11 @@ NR>1{
         next;
 }
 
+function trim(what){
+        value=gensub("^[[:space:]]*", "", "1", what)
+        return gensub("[[:space:]]*$", "", "1", value)
+}
+
 function split_value_nqdc(element, value, value_prefix){
         split_value_dcvalue(element, "none", value, value_prefix)
 }
@@ -142,8 +150,7 @@ function dcvalue(element, qualifier, value, value_prefix){
         value=gensub(">", "\\&gt;", "g", value)
         value=gensub("<", "\\&lt;", "g", value)
         value=gensub("&", "\\&amp;", "g", value)
-        value=gensub("^[[:space:]]*", "", "1", value)
-        value=gensub("[[:space:]]*$", "", "1", value)
+        value=trim(value)
 
         if(element!="description"){
                 value=gensub("\"", "", "g", value)
