@@ -35,6 +35,7 @@
             <xsl:when test="$collection='GALERIE'">Galerie osobností</xsl:when>
             <xsl:when test="$collection='HEYDRICH'">Heydrichiáda</xsl:when>
             <xsl:when test="$collection='VZNIK_CSR'">Vznik ČSR</xsl:when>
+            <xsl:when test="$collection='VYZNAMNE_POHRBY'">Významné pohřby</xsl:when>
         </xsl:choose>
     </xsl:variable>
 
