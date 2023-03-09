@@ -9,6 +9,11 @@ trap 's=$?; echo >&2 "$0: Error on line "$LINENO": $BASH_COMMAND"; exit $s' ERR
 shopt -s extglob
 export SHELLOPTS
 
+HDL_PREFIX=${HDL_PREFIX:-}
+if [ -z "$HDL_PREFIX" ]; then
+    echo "Error: Please set HDL_PREFIX" >&2
+    exit 3;
+fi
 WD=$(dirname $(readlink -e $0))
 BAG_DIR=$(readlink -e $1)
 BAG_NAME=$(basename "$BAG_DIR")
