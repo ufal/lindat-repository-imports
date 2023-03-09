@@ -86,7 +86,7 @@ function process_manifest {
         sed -e 's/\s\+/ /' $MANIFEST | cut -d' ' -f2- |
         while read -r line; do
             #bitsream description
-            local description=$(echo "$line" | sed -e 's/__/ /' -e 's/\..\{3,4\}$//' | cut -d' ' -f2)
+            local description=$(echo "$line" | sed -e 's/.*[_-]\{2\}\(.*\)/\1/' -e 's/\..\{3,4\}$//')
             if [ "$description" = "metadata" ]; then
                 bundle=METADATA
             elif echo "$description" | grep -q "thumbnail" ; then
