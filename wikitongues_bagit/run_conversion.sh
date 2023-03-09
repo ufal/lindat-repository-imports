@@ -23,13 +23,14 @@ if [ ! -e "$MD_FILE" ]; then
 fi
 BAG_INFO=$(find "$BAG_DIR"/ -type f -name 'bag-info.txt' | head -n 1)
 OUT_DIR=$(readlink -e ${2:-$(mktemp -d)})
+CONV_ERRS=${3:-$(mktemp)}
 
 pushd $OUT_DIR 
 
 
 #### METADATA ####
 echo "Omitting $(grep -c undefined $MD_FILE) undefined values " >&2
-$WD/convert.awk "$MD_FILE" | xsltproc $WD/distinct.xslt - > dublin_core.xml
+( $WD/convert.awk "$MD_FILE" | xsltproc $WD/distinct.xslt - > dublin_core.xml ) || ( echo "Error: Conversion failed for $MD_FILE" | tee -a $CONV_ERRS >&2 ; popd; rm -rf "$OUT_DIR"; exit 3;  )
 # compute hash of the identifier, so it seems opaque, keep only first $SHA_CHARS; conflicts will need to be resolved manually 
 SHA_CHARS=8
 MD_ID=$(sed -nE "s/^Identifier: (.*)/\1/p" "$MD_FILE")
