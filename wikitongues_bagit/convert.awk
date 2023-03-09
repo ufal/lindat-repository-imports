@@ -128,7 +128,7 @@ $0 ~ /639-3/ && $0 !~ /Caption/ {
 }
 
 /^Languages.*preferred/ {
-        nqdc("subject", $NF);
+        split_value_nqdc("subject", $NF);
         next;
 }
 
@@ -159,7 +159,7 @@ function split_value_nqdc(element, value, value_prefix){
 
 # n, a, i are local variables 
 function split_value_dcvalue(element, qualifier, value, value_prefix,    n, a, i){
-        n=split(value, a, ",")
+        n=split(value, a, /(,| and )/)
         for(i=1;i<=n;i++){
             dcvalue(element, qualifier, a[i], value_prefix)
         }
