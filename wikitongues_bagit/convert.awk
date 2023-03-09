@@ -29,10 +29,26 @@ END{
                         }
                 } else {
                         print("unexpected EOF or error:", ERRNO) > "/dev/stderr"
-                        exit
+                        exit 1
                 }
         }
-        value=gensub("\nThis video is licensed under a Creative Commons Attribution-NonCommercial 4.0 International license. To download a copy, please contact hello@wikitongues.org.", "", "1", d)
+        switch (d) {
+            case /Creative Common Attribution-NonCommercial 4.0 International License./:
+                lic="CC BY-NC 4.0"
+                value=gensub("\nThis video is licensed under a Creative Common Attribution-NonCommercial 4.0 International License. To download a copy, please contact hello@wikitongues.org.", "", "1", d)
+                break
+            case /Creative Commons Attribution-NonCommercial 4.0 International license./:
+                lic="CC BY-NC 4.0"
+                value=gensub("\nThis video is licensed under a Creative Commons Attribution-NonCommercial 4.0 International license. To download a copy, please contact hello@wikitongues.org.", "", "1", d)
+                break
+            case /Creative Commons Attribution-ShareAlike 4.0 International license./:
+                lic="CC BY-SA 4.0"
+                value=gensub("\nThis video is licensed under a Creative Commons Attribution-ShareAlike 4.0 International license. To download a copy, please contact hello@wikitongues.org.", "", "1", d)
+                break
+            default:
+                value=d
+                lic=""
+        }
         nqdc("description", value)
 }
 
@@ -68,12 +84,24 @@ $0 ~ /639-3/ && $0 !~ /Caption/ {
 }
 
 /^Rights/ {
-        if($NF="CC BY-NC 4.0"){
+        if(lic && $NF!=lic){
+            print("ERROR: Rights don't match description: ", $NF, " vs. ", lic) > "/dev/stderr"
+            exit 1
+        }
+        switch ($NF) {
+            case "CC BY-NC 4.0":
                 dcvalue("rights", "uri", "http://creativecommons.org/licenses/by-nc/4.0/")
                 dcvalue("rights", "label", "PUB")
                 nqdc("rights", "Creative Commons - Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)")
-        }else{
-                print "No mapping for license " $NF > "/dev/stderr"
+                break
+             case "CC BY-SA 4.0":
+                dcvalue("rights", "uri", "http://creativecommons.org/licenses/by-sa/4.0/")
+                dcvalue("rights", "label", "PUB")
+                nqdc("rights", "Creative Commons - Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)")
+                break
+             default:
+                print "ERROR: No mapping for license " $NF > "/dev/stderr"
+                exit 1
         }
         next;
 }
