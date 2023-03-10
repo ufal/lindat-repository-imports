@@ -5,6 +5,8 @@ BEGIN{
         print "<dublin_core schema=\"dc\">";
 }
 END{
+        ### language processing is more complex; wait until the whole file is read
+        languages()
         ### fixed values ###
         # mandatory
         nqdc("type", "languageDescription");
@@ -79,7 +81,20 @@ END{
 }
 
 $0 ~ /639-3/ && $0 !~ /Caption/ {
-        split_value_dcvalue("language", "iso", $NF)
+        # cf. END
+        # this is triggered or multiple lines; hence the concat.
+        # function languages() doesn't take that into account though...
+        if(lang_iso){
+            lang_iso = lang_iso "," $NF
+        }else{
+            lang_iso=$NF
+        }
+        next;
+}
+
+/^Language names/ {
+        # cf. END
+        lang_names=$NF
         next;
 }
 
@@ -146,6 +161,36 @@ $0 ~ /639-3/ && $0 !~ /Caption/ {
 NR>1{
         print "No mapping for field no. " NR ": " $0 > "/dev/stderr"
         next;
+}
+
+# m, n, codes, names, i, code are local variables
+function languages(    m, n, codes, names, i, code){
+        m=split(lang_iso, codes, /(,| and )/)
+        n=split(lang_names, names, /(,| and )/)
+        for(i=1;i<=m;i++){
+            code=trim(codes[i])
+            switch(code){
+                case /^w...$/:
+                    if(m!=n){
+                        print "ERROR: On language code " code " no human readable name found" > "/dev/stderr"
+                        exit 1
+                    }
+                    # uncoded language
+                    dcvalue("language", "iso", "mis")
+                    # add the human readable name as dc.language
+                    nqdc("language", names[i])
+                    # use the wikitongues code as subject
+                    nqdc("subject", code)
+                    break
+                case /^...$/:
+                    dcvalue("language", "iso", code)
+                    break
+                default:
+                    print "ERROR: On language code " code > "/dev/stderr"
+                    exit 1
+
+            }
+        }
 }
 
 function trim(what){
