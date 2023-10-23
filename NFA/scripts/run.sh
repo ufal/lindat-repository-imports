@@ -57,7 +57,7 @@ function addFiles {
     for suffix in mov mp4; do
         # Mnichov: ZF_0340_3900403_sot3_hd-master.mov
         # Galerie: 3901034_26_hd-master.mov
-        find $MOV_DIR/ -type f \( -name "*sot${NOT_PADDED_SHOT_NO}*.$suffix" -o -name "*_${PADDED_SHOT_NO}_*.$suffix" \) | while read -r f; do
+        find $MOV_DIR/ -type f \( -name "*sot${NOT_PADDED_SHOT_NO}*.$suffix" -o -name "*_${PADDED_SHOT_NO}_*.$suffix" -o -name "*_${NOT_PADDED_SHOT_NO}_*.$suffix" \) | while read -r f; do
             if [ "FALSE" = "$MD_ONLY" ]; then
                 cp $f $ID/
             else
