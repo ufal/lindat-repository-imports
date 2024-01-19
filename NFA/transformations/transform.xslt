@@ -37,6 +37,7 @@
             <xsl:when test="$collection='VZNIK_CSR'">Vznik ČSR</xsl:when>
             <xsl:when test="$collection='VYZNAMNE_POHRBY'">Významné pohřby</xsl:when>
             <xsl:when test="$collection='KURATORIUM'">Kuratorium</xsl:when>
+            <xsl:when test="$collection='NARODNI_DIVADLO'">Národní divadlo</xsl:when>
         </xsl:choose>
     </xsl:variable>
 
