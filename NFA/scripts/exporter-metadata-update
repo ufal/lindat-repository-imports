@@ -1,0 +1,346 @@
+///usr/bin/env jbang "$0" "$@" ; exit $?
+//JAVA 17+
+//DEPS info.picocli:picocli:4.6.3
+//DEPS org.apache.commons:commons-csv:1.10.0
+//DEPS org.yaml:snakeyaml:2.2
+//DEPS net.sf.saxon:Saxon-HE:10.5
+
+
+import picocli.CommandLine;
+import picocli.CommandLine.Command;
+import picocli.CommandLine.Option;
+
+import java.io.Console;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.StringReader;
+import java.io.StringWriter;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.StreamSupport;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.Source;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.TransformerFactoryConfigurationError;
+import javax.xml.transform.URIResolver;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
+
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVPrinter;
+import org.apache.commons.csv.CSVRecord;
+import org.apache.commons.csv.QuoteMode;
+import org.yaml.snakeyaml.Yaml;
+
+import net.sf.saxon.lib.StandardURIResolver;
+import net.sf.saxon.s9api.DOMDestination;
+import net.sf.saxon.s9api.Processor;
+import net.sf.saxon.s9api.QName;
+import net.sf.saxon.s9api.SaxonApiException;
+import net.sf.saxon.s9api.XQueryCompiler;
+import net.sf.saxon.s9api.XQueryEvaluator;
+import net.sf.saxon.s9api.XQueryExecutable;
+import net.sf.saxon.s9api.XdmAtomicValue;
+import net.sf.saxon.s9api.XdmItem;
+import net.sf.saxon.s9api.XsltCompiler;
+import net.sf.saxon.s9api.XsltExecutable;
+import net.sf.saxon.s9api.XsltTransformer;
+
+import static net.sf.saxon.s9api.streams.Steps.attribute;
+import static net.sf.saxon.s9api.streams.Steps.child;
+
+@Command(name = "exporter-metadata-update", mixinStandardHelpOptions = true, version ="exporter-metadata-update 0.1",
+        description = "Take the output of DSpace MetadataExporter (a csv) and ZF Metadata (xml) from NFA and update the csv.")
+class ExporterMetadataUpdate implements Callable<Integer> {
+
+    @Option(names={"-i", "--csv-in"}, description = "The csv file from MetadataExporter", defaultValue = "~/Downloads/nfa.csv")
+    private String file;
+
+    @Option(names={"-o", "--csv-out"}, description = "The output path. The updated csv file.", defaultValue = "/tmp/updated_output.csv")
+    private String csvOut;
+
+    @Option(names={"-d", "--metadata-dir"}, description = "The dir with metadata", defaultValue = "/tmp/junk/lindat-metadata-7-kolekci-update")
+    private String metadataDir;
+
+    @Option(names={"-s", "--subject-map"}, description = "DON'T USE! ATM the yaml is inlined at the end. ~The file with collection to subject mapping~")
+    private String subjectMapFile;
+
+    @Option(names={"--uri"}, description = "File path to Xosobn.xml", defaultValue = "~/sources/lindat-repository-imports/NFA/transformations/Xosobn.xml")
+    private static String xOsobPath;
+
+    //potrebuju Xosobn.xml
+    private static final String xsltFile = "https://raw.githubusercontent.com/ufal/lindat-repository-imports/main/NFA/transformations/transform.xslt";
+    private static final URIResolver myUriResolver = new StandardURIResolver() {
+        @Override
+        public Source resolve(String href, String base) throws net.sf.saxon.trans.XPathException {
+            if (href.equals("Xosobn.xml")) {
+                try {
+                    // The replacement here is mainly for the default case, otherwise shell should expand
+                    return new StreamSource(new FileReader(xOsobPath.replaceFirst("^~", System.getProperty("user.home"))));
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
+            }
+            return super.resolve(href, base);
+        }
+    };
+
+    private Map<String, Set<String>> zf2shot = new HashMap<>();
+    private Map<String, CSVRecord> id2record = new HashMap<>();
+    private Map<String, String> collection2subject = new HashMap<>();
+
+    private static final Processor processor = new Processor(false);
+    private static final XsltCompiler xsltCompiler = processor.newXsltCompiler();
+    private static final XQueryCompiler xqueryCompiler = processor.newXQueryCompiler();
+
+    private Source xslSource;
+    private XsltExecutable xsltExecutable;
+    private XQueryExecutable xqueryExecutable;
+
+    private static final DocumentBuilder docBuilder;
+    static {
+        try {
+            docBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+        } catch (ParserConfigurationException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static final List<String> mdSufixes = List.of("", "[]", "[*]");
+
+    private static final String delimiter = "\\|\\|";
+
+    private List<String> headers = null;
+
+    public static void main(String... args) {
+        int exitCode = new CommandLine(new ExporterMetadataUpdate()).execute(args);
+        System.exit(exitCode);
+    }
+
+    private Optional<String> reportErrorAndPickAField(String mdKey, String id, String newValue){
+        Console console = System.console();
+        var writer = console.writer();
+        writer.println("No column found for " + mdKey + " in csv of " + id + ". Would add " + newValue);
+        writer.println("Pick a csvKey from the following list: ");
+        var index = -1;
+        do{
+            IntStream.range(0, headers.size()).forEach(i -> writer.println(i + ": " + headers.get(i)));
+            index = Integer.valueOf(console.readLine("Enter the index of the key: "));
+        }while(index < 0 || index >= headers.size());
+        writer.println("You picked " + headers.get(index));
+        var confirmed = console.readLine("Proceed? (y/N): ").toLowerCase().equals("y");
+        if(confirmed){
+            return Optional.of(headers.get(index));
+        }else{
+            return Optional.empty();
+        }
+    }
+
+    private void add(CSVRecord record){
+        var id = record.get("dc.identifier.other[]");
+        String[] parts = id.split("-");
+        var shots = zf2shot.computeIfAbsent(parts[0], t -> new HashSet<String>());
+        shots.add(parts[1]);
+        id2record.put(id, record);
+    }
+
+    private void getNewMetadata(String zfid, Set<String> shots, CSVPrinter csvWriter){
+
+        var xmlFile = metadataDir + "/" + zfid + ".xml";
+        var processOnly = String.join(";", shots);
+        //XXX this assumes that all the shots are in the same collection, same prefix and contact
+        //these are inputs to the xslt
+        var _record = id2record.get(zfid + "-" + shots.iterator().next());
+        var collectionID = _record.get("collection").split(delimiter)[0];
+        var collection = collection2subject.get(collectionID);
+
+        var _parts = _record.get("dc.identifier.uri[]").split("/");
+        var prefix = _parts[_parts.length - 2];
+
+        var contactPerson = _record.get("local.contact.person[]");
+        // /xslt inputs
+
+        XsltTransformer transformer = xsltExecutable.load();
+
+        try{
+        var source = new StreamSource(new FileReader(xmlFile));
+        var doc = docBuilder.newDocument();
+        var output = new DOMDestination(doc);
+
+        transformer.setSource(source);
+        transformer.setDestination(output);
+        transformer.setParameter(new QName("PROCESS_ONLY"), new XdmAtomicValue(processOnly));
+        transformer.setParameter(new QName("PREFIX"), new XdmAtomicValue(prefix));
+        transformer.setParameter(new QName("CONTACT_PERSON"), new XdmAtomicValue(contactPerson));
+        transformer.setParameter(new QName("COLLECTION"), new XdmAtomicValue(collection));
+
+        transformer.setURIResolver(myUriResolver);
+
+        transformer.transform();
+
+        XQueryEvaluator qe = xqueryExecutable.load();
+        qe.setContextItem(processor.newDocumentBuilder().wrap(doc));
+
+        for (XdmItem item : qe.evaluate()) {
+            var newMetadata = new HashMap<String, String>();
+            item.select(child("column")).forEach(column -> {
+                newMetadata.put(column.select(attribute("name")).asString(), column.getStringValue());
+            });
+            var id = newMetadata.get("dc.identifier.other");
+            var updatedMetadata = id2record.get(id).toMap();
+            for (String mdKey: newMetadata.keySet()){
+                mdSufixes.stream()
+                         .map(suf -> mdKey+suf)
+                         .filter(csvKey -> updatedMetadata.containsKey(csvKey))
+                         .map(csvKey -> new KeyVal(csvKey, updatedMetadata.get(csvKey)))
+                         .filter(kv -> Objects.nonNull(kv.val) && !kv.val.trim().isEmpty())
+                         .findFirst().ifPresentOrElse(
+                            kv -> updatedMetadata.put(kv.key, newMetadata.get(mdKey)),
+                            () -> {
+                                var choice = reportErrorAndPickAField(mdKey, id, newMetadata.get(mdKey));
+                                choice.ifPresent(k -> updatedMetadata.put(k, newMetadata.get(mdKey)));
+                            });
+            }
+            var collections = updatedMetadata.get("collection").split(delimiter);
+            if(collections.length > 1){
+                var additionalSubjects = Arrays.stream(collections)
+                                                .skip(1)
+                                                .map(c -> collection2subject.get(collection2subject.get(c))) //The first mapping is col id to xslt collection, the second maps it to subject
+                                                .collect(Collectors.joining("||"));
+                var subjects = updatedMetadata.get("dc.subject[]");
+                updatedMetadata.put("dc.subject[]", subjects + "||" + additionalSubjects);                
+            }
+            // Write updatedMetadata to file as csv
+            csvWriter.printRecord(headers.stream().map(updatedMetadata::get).toArray());
+        }
+
+/*         var toFileTransformer = TransformerFactory.newInstance().newTransformer();
+        var transformedSource = new DOMSource(doc);
+        var writer = new FileWriter("/tmp/output_trans.xml");
+
+        toFileTransformer.transform(transformedSource, new StreamResult(writer)); */
+
+        
+        }catch(Exception e ){
+            e.printStackTrace();
+        }
+        
+    }
+
+    private void processCSV() throws IOException{
+        System.out.println("Reading " + file);
+        var in = new FileReader(file);
+        var csvFormat = CSVFormat.DEFAULT.builder().setHeader()
+                                                   .setNullString("")
+                                                   .setSkipHeaderRecord(true).build();
+        Iterable<CSVRecord> records = csvFormat.parse(in);
+        headers = ((CSVParser)records).getHeaderNames();
+        StreamSupport.stream(records.spliterator(), false)
+            //.limit(1) //FIXME remove
+            .forEach(this::add);
+        System.out.println("===Read " + id2record.size() + " records");
+        //System.out.println(zf2shot); //FIXME remove
+        var w = new FileWriter(csvOut);
+        //var w = new StringWriter();
+        try (CSVPrinter csvWriter = new CSVPrinter(w, CSVFormat.DEFAULT.builder()
+                                                                        .setHeader(headers.toArray(new String[]{}))
+                                                                        //.setEscape(Character.valueOf('"'))
+                                                                        .setTrim(true)
+                                                                        .setQuoteMode(QuoteMode.ALL_NON_NULL).build());) {
+            zf2shot.forEach((zfid, shots) -> this.getNewMetadata(zfid, shots, csvWriter));
+        } catch (IOException e) {
+            throw e;
+        }
+        //System.out.println("====" + headers.size());
+        //System.out.println(w.toString());
+    }
+    
+    private void readSubjectMap() throws IOException {
+        Yaml yaml = new Yaml();
+        //load subjectMapFile
+        //collection2subject = yaml.load(new FileReader(subjectMapFile));
+        collection2subject = yaml.load(new StringReader(subjectMapYaml));
+        System.out.println(collection2subject);
+    }
+
+    private Source getSourceFromFile() {
+        return new StreamSource(xsltFile);
+    }
+
+    private void setup() throws TransformerConfigurationException, TransformerFactoryConfigurationError, FileNotFoundException, SaxonApiException{
+        xslSource = getSourceFromFile();
+        xsltExecutable = xsltCompiler.compile(xslSource);
+        xqueryExecutable = xqueryCompiler.compile(myQuery);     
+    }
+
+    @Override
+    public Integer call() throws Exception { // your business logic goes here...
+        setup();
+        readSubjectMap();
+        processCSV();        
+        return 0;
+    }
+
+    private static String myQuery =
+    """
+        declare namespace saxon="http://saxon.sf.net/";
+        declare option saxon:output "indent=yes";
+        declare option saxon:output "omit-xml-declaration=yes";
+        
+        for $i in //item
+        return 
+            <item>{
+                for $dcv in $i//dcvalue
+                    let $schema := data($dcv/../@schema)
+                    let $qualifier := 
+                        if ($dcv/@qualifier = 'none') then
+                            ''
+                        else
+                            concat('.', $dcv/@qualifier)
+                    let $mdstring := concat($schema, '.', $dcv/@element, $qualifier)
+                    group by $mdstring
+                    order by $mdstring
+                    return <column name="{$mdstring}">{
+                        string-join($dcv/text(), '||')
+                    }</column>
+            }</item>
+            """;
+
+    private static String subjectMapYaml = """
+        "20.500.12801/2": "MNICHOV"
+        "20.500.12801/3": "GALERIE"
+        "20.500.12801/4": "HEYDRICH"
+        "20.500.12801/5": "VZNIK_CSR"
+        "20.500.12801/6": "VYZNAMNE_POHRBY"
+        "20.500.12801/7": "KURATORIUM"
+        "20.500.12801/8": "NARODNI_DIVADLO"
+        "MNICHOV": "Mnichovská dohoda"
+        "GALERIE": "Galerie osobností"
+        "HEYDRICH": "Heydrichiáda"
+        "VZNIK_CSR": "Vznik ČSR"
+        "VYZNAMNE_POHRBY": "Významné pohřby"
+        "KURATORIUM": "Kuratorium"
+        "NARODNI_DIVADLO": "Národní divadlo"
+        """
+;
+
+    private record KeyVal(String key, String val){};
+}
