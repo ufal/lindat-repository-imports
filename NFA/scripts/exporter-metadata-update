@@ -166,11 +166,12 @@ class ExporterMetadataUpdate implements Callable<Integer> {
 
         var xmlFile = metadataDir + "/" + zfid + ".xml";
         var processOnly = String.join(";", shots);
-        //XXX this assumes that all the shots are in the same collection, same prefix and contact
+        //XXX this assumes that all the shots have the same prefix and contact
         //these are inputs to the xslt
         var _record = id2record.get(zfid + "-" + shots.iterator().next());
-        var collectionID = _record.get("collection").split(delimiter)[0];
-        var collection = collection2subject.get(collectionID);
+        //EMPTY is not mapped by the xslt, it won't create the fixed_subject
+        //collection based subjects are generated after the xslt; one ZF xml can contain shots from multiple collections
+        var collection = "EMPTY";
 
         var _parts = _record.get("dc.identifier.uri[]").split("/");
         var prefix = _parts[_parts.length - 2];
@@ -220,14 +221,11 @@ class ExporterMetadataUpdate implements Callable<Integer> {
                             });
             }
             var collections = updatedMetadata.get("collection").split(delimiter);
-            if(collections.length > 1){
-                var additionalSubjects = Arrays.stream(collections)
-                                                .skip(1)
+            var additionalSubjects = Arrays.stream(collections)                                                
                                                 .map(c -> collection2subject.get(collection2subject.get(c))) //The first mapping is col id to xslt collection, the second maps it to subject
                                                 .collect(Collectors.joining("||"));
-                var subjects = updatedMetadata.get("dc.subject[]");
-                updatedMetadata.put("dc.subject[]", subjects + "||" + additionalSubjects);                
-            }
+            var subjects = updatedMetadata.get("dc.subject[]");
+            updatedMetadata.put("dc.subject[]", subjects + "||" + additionalSubjects);                
             // Write updatedMetadata to file as csv
             csvWriter.printRecord(headers.stream().map(updatedMetadata::get).toArray());
         }
