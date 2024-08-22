@@ -338,6 +338,7 @@ class ExporterMetadataUpdate implements Callable<Integer> {
         "20.500.12801/7": "KURATORIUM"
         "20.500.12801/8": "NARODNI_DIVADLO"
         "20.500.12801/9": "ZDRAVOTNI_SOCIALNI"
+        "20.500.12801/10": "USPORNA_OPATRENI"
         "MNICHOV": "Mnichovská dohoda"
         "GALERIE": "Galerie osobností"
         "HEYDRICH": "Heydrichiáda"
@@ -346,6 +347,7 @@ class ExporterMetadataUpdate implements Callable<Integer> {
         "KURATORIUM": "Kuratorium"
         "NARODNI_DIVADLO": "Národní divadlo"
         "ZDRAVOTNI_SOCIALNI": "Zdravotní a sociální péče"
+        "USPORNA_OPATRENI": "Úsporná opatření"
         """
 ;
 
