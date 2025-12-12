@@ -41,6 +41,7 @@
 	    <xsl:when test="$collection='USPORNA_OPATRENI'">Úsporná opatření</xsl:when>
 	    <xsl:when test="$collection='ZDRAVOTNI_SOCIALNI'">Zdravotní a sociální péče</xsl:when>
 	    <xsl:when test="$collection='STAVEBNI_RUCH'">Pražský stavební ruch</xsl:when>
+	    <xsl:when test="$collection='NARODNI_PAMET'">Národní paměť</xsl:when>
         </xsl:choose>
     </xsl:variable>
 
