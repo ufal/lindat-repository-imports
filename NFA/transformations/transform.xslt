@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-     xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+     xmlns:xs="http://www.w3.org/2001/XMLSchema"
      exclude-result-prefixes="xs" version="3.0">
      <xsl:output method="xml" indent="yes" encoding="UTF-8" />
 
@@ -38,11 +38,12 @@
             <xsl:when test="$collection='VYZNAMNE_POHRBY'">Významné pohřby</xsl:when>
             <xsl:when test="$collection='KURATORIUM'">Kuratorium</xsl:when>
             <xsl:when test="$collection='NARODNI_DIVADLO'">Národní divadlo</xsl:when>
-	    <xsl:when test="$collection='USPORNA_OPATRENI'">Úsporná opatření</xsl:when>
-	    <xsl:when test="$collection='ZDRAVOTNI_SOCIALNI'">Zdravotní a sociální péče</xsl:when>
-	    <xsl:when test="$collection='STAVEBNI_RUCH'">Pražský stavební ruch</xsl:when>
-	    <xsl:when test="$collection='NARODNI_PAMET'">Národní paměť</xsl:when>
-	    <xsl:when test="$collection='KVETEN_1945'">Květen 1945</xsl:when>
+            <xsl:when test="$collection='USPORNA_OPATRENI'">Úsporná opatření</xsl:when>
+            <xsl:when test="$collection='ZDRAVOTNI_SOCIALNI'">Zdravotní a sociální péče</xsl:when>
+            <xsl:when test="$collection='STAVEBNI_RUCH'">Pražský stavební ruch</xsl:when>
+            <xsl:when test="$collection='NARODNI_PAMET'">Národní paměť</xsl:when>
+            <xsl:when test="$collection='KVETEN_1945'">Květen 1945</xsl:when>
+            <xsl:when test="$collection='MIZEJICI_REMESLA'">Mizející řemesla</xsl:when>
         </xsl:choose>
     </xsl:variable>
 
@@ -68,10 +69,10 @@
                </xsl:for-each>
           </root>
      </xsl:template>
-     
+
 
      <xsl:template match="/FILM/SOT-ZF">
-          <xsl:variable name="PADDED_NO" select="format-integer(CISLO-SOTU, '00')"/>   
+          <xsl:variable name="PADDED_NO" select="format-integer(CISLO-SOTU, '00')"/>
           <xsl:variable name="SHOT_PID" select="concat($ZF_PID, '-', $PADDED_NO)"/>
           <xsl:variable name="SHOT_ID" select="concat($ZF_ID, '-', $PADDED_NO)"/>
           <xsl:variable name="issued">
@@ -240,7 +241,7 @@
     </xsl:template>
 
      <xsl:template name="osobnosti">
-         <xsl:param name="cislo_sotu"/> 
+         <xsl:param name="cislo_sotu"/>
          <xsl:for-each-group select="/FILM/OSOBNOST/CISLOSOTU[text()=$cislo_sotu]/.." group-by="PRIJMENIJMENO">
                  <xsl:variable name="OS" select="$OSOBNOSTI/OSOBNOST[ID/text()=current()/CISLO/text()]"/>
                  <xsl:variable name="NAR" select="tokenize($OS/DATUM_NAROZENI,'-')[1]"/>
@@ -302,7 +303,7 @@
      </xsl:template>
 
      <xsl:template name="verze2language">
-         <xsl:param name="cislo_verze"/> 
+         <xsl:param name="cislo_verze"/>
          <xsl:variable name="iso_code">
                  <!-- TODO maybe sound / no sound as subject? -->
              <xsl:choose>
