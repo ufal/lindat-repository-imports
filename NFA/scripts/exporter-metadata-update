@@ -231,8 +231,8 @@ class ExporterMetadataUpdate implements Callable<Integer> {
                                                 .map(c -> collection2subject.get(collection2subject.get(c))) //The first mapping is col id to xslt collection, the second maps it to subject
                                                 .collect(Collectors.joining("||"));
             var subjects = updatedMetadata.get("dc.subject[]");
-            updatedMetadata.put("collection", String.join("||", collections));                
-            updatedMetadata.put("dc.subject[]", subjects + "||" + additionalSubjects);                
+            updatedMetadata.put("collection", String.join("||", collections));
+            updatedMetadata.put("dc.subject[]", subjects + "||" + additionalSubjects);
             // Write updatedMetadata to file as csv
             csvWriter.printRecord(headers.stream().map(updatedMetadata::get).toArray());
         }
@@ -243,11 +243,11 @@ class ExporterMetadataUpdate implements Callable<Integer> {
 
         toFileTransformer.transform(transformedSource, new StreamResult(writer)); */
 
-        
+
         }catch(Exception e ){
             e.printStackTrace();
         }
-        
+
     }
 
     private void processCSV() throws IOException{
@@ -277,7 +277,7 @@ class ExporterMetadataUpdate implements Callable<Integer> {
         //System.out.println("====" + headers.size());
         //System.out.println(w.toString());
     }
-    
+
     private void readSubjectMap() throws IOException {
         Yaml yaml = new Yaml();
         //load subjectMapFile
@@ -293,14 +293,14 @@ class ExporterMetadataUpdate implements Callable<Integer> {
     private void setup() throws TransformerConfigurationException, TransformerFactoryConfigurationError, FileNotFoundException, SaxonApiException{
         xslSource = getSourceFromFile();
         xsltExecutable = xsltCompiler.compile(xslSource);
-        xqueryExecutable = xqueryCompiler.compile(myQuery);     
+        xqueryExecutable = xqueryCompiler.compile(myQuery);
     }
 
     @Override
     public Integer call() throws Exception { // your business logic goes here...
         setup();
         readSubjectMap();
-        processCSV();        
+        processCSV();
         return 0;
     }
 
@@ -309,13 +309,13 @@ class ExporterMetadataUpdate implements Callable<Integer> {
         declare namespace saxon="http://saxon.sf.net/";
         declare option saxon:output "indent=yes";
         declare option saxon:output "omit-xml-declaration=yes";
-        
+
         for $i in //item
-        return 
+        return
             <item>{
                 for $dcv in $i//dcvalue
                     let $schema := data($dcv/../@schema)
-                    let $qualifier := 
+                    let $qualifier :=
                         if ($dcv/@qualifier = 'none') then
                             ''
                         else
@@ -340,6 +340,9 @@ class ExporterMetadataUpdate implements Callable<Integer> {
         "20.500.12801/9": "ZDRAVOTNI_SOCIALNI"
         "20.500.12801/10": "USPORNA_OPATRENI"
         "20.500.12801/11": "STAVEBNI_RUCH"
+        "20.500.12801/12": "NARODNI_PAMET"
+        "20.500.12801/13": "KVETEN_1945"
+        "20.500.12801/14": "MIZEJICI_REMESLA"
         "MNICHOV": "Mnichovská dohoda"
         "GALERIE": "Galerie osobností"
         "HEYDRICH": "Heydrichiáda"
@@ -350,6 +353,9 @@ class ExporterMetadataUpdate implements Callable<Integer> {
         "ZDRAVOTNI_SOCIALNI": "Zdravotní a sociální péče"
         "USPORNA_OPATRENI": "Úsporná opatření"
         "STAVEBNI_RUCH": "Pražský stavební ruch"
+        "NARODNI_PAMET": "Národní paměť"
+        "KVETEN_1945": "Květen 1945"
+        "MIZEJICI_REMESLA": "Mizející řemesla"
         """
 ;
 
